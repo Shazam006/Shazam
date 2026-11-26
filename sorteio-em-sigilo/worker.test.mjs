@@ -1,0 +1,8 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {draw,handleApi} from './worker.mjs';
+const env={DRAW_SECRET:'a'.repeat(64)};
+const call=(payload,e=env)=>handleApi(new Request('https://example.test/api',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)}),e);
+test('draw invariants across 9900 draws',()=>{for(let n=2;n<=100;n++)for(let t=0;t<100;t++){const p=draw(n);assert.equal(new Set(p).size,n);assert.ok(p.every((v,i)=>v!==i&&v>=0&&v<n))}});
+test('create preview reveal and token tampering',async()=>{const names=['Lucas','Mariana','Rafael','Camila'];const r=await call({action:'create',names,event:'Amigo secreto'});assert.equal(r.status,201);const {records}=await r.json();assert.deepEqual(records.map(x=>x.name),names);const recipients=[];for(const x of records){assert.deepEqual(Object.keys(x).sort(),['name','token']);const p=await call({action:'preview',token:x.token});assert.equal(p.status,200);assert.equal((await p.json()).to,undefined);const v=await call({action:'reveal',token:x.token});assert.equal(v.status,200);const d=await v.json();assert.equal(d.from,x.name);assert.notEqual(d.to,x.name);recipients.push(d.to);const i=10;const t=x.token.slice(0,i)+(x.token[i]==='A'?'B':'A')+x.token.slice(i+1);assert.equal((await call({action:'reveal',token:t})).status,404)}assert.equal(new Set(recipients).size,4)});
+test('validation',async()=>{assert.equal((await call({action:'create',names:['Ana',' ANA '],event:'Teste'})).status,422);assert.equal((await call({action:'create',names:['Ana','Bia'],event:'Teste',date:'2026-02-30'})).status,422);assert.equal((await call({action:'create',names:['Ana','Bia'],event:'Teste'},{})).status,503)});
