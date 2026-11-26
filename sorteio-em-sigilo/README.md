@@ -1,9 +1,12 @@
 # Sorteio em Sigilo
 
-Frontend HTML e API PHP 8.2+ com OpenSSL e mbstring. Sem GPT ou banco de dados. POST JSON para api.php: create (names, event, date, budget), preview (token), reveal (token). O sorteio usa Fisher-Yates com rejeição de pontos fixos. Tokens AES-256-GCM com chave exclusivamente no servidor, válidos por 90 dias. O organizador que tiver os links também pode revelar resultados. Não há revogação individual.
+HTML/CSS/JS em public/index.html e API JavaScript em worker.mjs. Sem PHP, GPT ou banco de dados. POST /api aceita create, preview e reveal. Convites AES-256-GCM com chave exclusiva do servidor, expiração de 90 dias. Portadores de links podem revelar o respectivo resultado, inclusive o organizador. Não há revogação individual. Tokens da versão PHP não são compatíveis.
 
-## Publicação
-GitHub Pages não executa PHP. Use hospedagem PHP HTTPS ou Render com runtime Docker, branch sorteio-em-sigilo e root directory sorteio-em-sigilo. Configure DRAW_SECRET como segredo persistente, aleatório e de alta entropia (por exemplo, gere com `openssl rand -hex 32`). Nunca inclua esse valor no GitHub. O Dockerfile usa porta 10000. Em hospedagem PHP existente, envie index.html e api.php para uma pasta dedicada e configure DRAW_SECRET no ambiente do PHP. Não altere o site existente. Configure limites de requisições na hospedagem antes de divulgar publicamente. Trocar o segredo invalida convites anteriores.
+## Cloudflare Workers
+Na pasta deste projeto, instale/execute Wrangler via npx, configure `DRAW_SECRET` como 64 caracteres hexadecimais aleatórios (`openssl rand -hex 32`), usando `npx wrangler secret put DRAW_SECRET`, e publique com `npx wrangler deploy`. Para desenvolvimento use .dev.vars local (nunca versionar) e `npx wrangler dev`. Configure rate limiting no serviço antes de divulgação pública.
 
-## Teste local
-`DRAW_SECRET="$(openssl rand -hex 32)" php -S 127.0.0.1:8000` (shell Unix, na pasta do projeto). No Windows configure a variável de ambiente antes de iniciar. Abra http://127.0.0.1:8000. Não use file://. Teste criação, preview sem resultado, reveal, duplicatas, tokens adulterados e expiração. Não há publicação confirmada ainda.
+## ChatGPT Sites
+A estrutura usa APIs Web padrão. Para publicação pelo Sites, importe/adapte os arquivos ao runtime disponibilizado pelo ambiente. A compatibilidade direta com wrangler.jsonc no Sites não foi verificada. Não é GitHub Pages, que não executa a API.
+
+## Testes
+Execute `node --test worker.test.mjs` com Node 22 ou superior. Teste também a interface em navegador após implantação. Não há URL de produção confirmada.
