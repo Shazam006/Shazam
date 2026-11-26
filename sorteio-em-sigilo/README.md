@@ -1,15 +1,9 @@
 # Sorteio em Sigilo
 
-Aplicação estática de amigo secreto em três etapas. Sem backend ou dependências.
+Frontend HTML e API PHP 8.2+ com OpenSSL e mbstring. Sem GPT ou banco de dados. POST JSON para api.php: create (names, event, date, budget), preview (token), reveal (token). O sorteio usa Fisher-Yates com rejeição de pontos fixos. Tokens AES-256-GCM com chave exclusivamente no servidor, válidos por 90 dias. O organizador que tiver os links também pode revelar resultados. Não há revogação individual.
 
 ## Publicação
-Copie esta pasta para a raiz de um repositório dedicado e habilite GitHub Pages (Settings > Pages > Deploy from a branch > main / root). Abra a URL HTTPS fornecida pelo GitHub antes de gerar convites. Não altere a configuração Pages do repositório Shazam sem verificar se há outro site ativo.
-
-## Uso
-Cadastre 2 a 100 participantes, configure a data e o valor do presente, se desejar, gere e compartilhe links individualmente. O algoritmo usa emparelhamento bipartido com ordenação aleatória; encontra uma distribuição válida quando existe, sem garantir uniformidade entre todas as distribuições possíveis.
-
-## Privacidade
-Cada convite tem um envelope AES-GCM com a chave no próprio fragmento da URL. O portador, inclusive o organizador, pode revelar o resultado. O site não armazena convites em servidor e não oferece revogação, expiração ou autenticação. Não publique os links no GitHub nem em grupos. Para sigilo perante o organizador, é necessária uma arquitetura adicional com autenticação independente.
+GitHub Pages não executa PHP. Use hospedagem PHP HTTPS ou Render com runtime Docker, branch sorteio-em-sigilo e root directory sorteio-em-sigilo. Configure DRAW_SECRET como segredo persistente, aleatório e de alta entropia (por exemplo, gere com `openssl rand -hex 32`). Nunca inclua esse valor no GitHub. O Dockerfile usa porta 10000. Em hospedagem PHP existente, envie index.html e api.php para uma pasta dedicada e configure DRAW_SECRET no ambiente do PHP. Não altere o site existente. Configure limites de requisições na hospedagem antes de divulgar publicamente. Trocar o segredo invalida convites anteriores.
 
 ## Teste local
-Execute `python -m http.server 8000` nesta pasta e abra http://localhost:8000. No modo local, use Testar convite. O compartilhamento é habilitado automaticamente quando o site é publicado via HTTPS.
+`DRAW_SECRET="$(openssl rand -hex 32)" php -S 127.0.0.1:8000` (shell Unix, na pasta do projeto). No Windows configure a variável de ambiente antes de iniciar. Abra http://127.0.0.1:8000. Não use file://. Teste criação, preview sem resultado, reveal, duplicatas, tokens adulterados e expiração. Não há publicação confirmada ainda.
