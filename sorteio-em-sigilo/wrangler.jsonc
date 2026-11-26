@@ -1,0 +1,13 @@
+{
+  "name": "sorteio-em-sigilo",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-26",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ]
+  }
+}
